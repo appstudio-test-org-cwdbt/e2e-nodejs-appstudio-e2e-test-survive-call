@@ -1,0 +1,50 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  creationTimestamp: null
+  name: nodejs-component
+  namespace: appstudio-e2e-test
+spec:
+  params:
+  - name: git-revision
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      annotations:
+        build.appstudio.openshift.io/application: e2e-nodejs
+        build.appstudio.openshift.io/build: "true"
+        build.appstudio.openshift.io/component: nodejs-component
+        build.appstudio.openshift.io/type: build
+        build.appstudio.openshift.io/version: "0.1"
+        pipelines.appstudio.openshift.io/type: build
+      creationTimestamp: null
+      generateName: nodejs-component-
+      labels:
+        build.appstudio.openshift.io/application: e2e-nodejs
+        build.appstudio.openshift.io/build: "true"
+        build.appstudio.openshift.io/component: nodejs-component
+        build.appstudio.openshift.io/type: build
+        build.appstudio.openshift.io/version: "0.1"
+        pipelines.appstudio.openshift.io/type: build
+      namespace: appstudio-e2e-test
+    spec:
+      params:
+      - name: git-url
+        value: https://github.com/redhat-appstudio-qe/simple-nodejs-app
+      - name: output-image
+        value: quay.io/codewindbtle/test-images:679947aec0f54c4099548766629f89b9-$(tt.params.git-revision)
+      - name: dockerfile
+        value: docker/Dockerfile
+      - name: path-context
+        value: .
+      pipelineRef:
+        bundle: quay.io/redhat-appstudio/build-templates-bundle:7e9728af099c5db53dda5f60e97d2b75f7e00d7d
+        name: docker-build
+      workspaces:
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: appstudio
+        subPath: nodejs-component/$(tt.params.git-revision)
+    status: {}
+status: {}
